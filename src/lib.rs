@@ -1,4 +1,4 @@
-use std::ops::{Deref, Index, IndexMut};
+use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 fn roll() -> Roll {
     match fastrand::usize(1..7) {
@@ -8,7 +8,7 @@ fn roll() -> Roll {
         4 => Roll::Four,
         5 => Roll::Five,
         6 => Roll::Six,
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 
@@ -27,6 +27,12 @@ impl Deref for Board {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Board {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -52,5 +58,4 @@ impl Board {
     fn score(&self) -> usize {
         todo!()
     }
-
 }
