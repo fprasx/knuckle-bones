@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut, Index, IndexMut};
+use std::slice::Iter;
 
-fn roll() -> Roll {
+pub fn roll() -> Roll {
     match fastrand::usize(1..7) {
         1 => Roll::One,
         2 => Roll::Two,
@@ -12,7 +13,8 @@ fn roll() -> Roll {
     }
 }
 
-enum Roll {
+#[derive(Debug)]
+pub enum Roll {
     One,
     Two,
     Three,
@@ -20,42 +22,71 @@ enum Roll {
     Five,
     Six,
 }
-struct Board([[Option<Roll>; 3]; 3]);
 
-impl Deref for Board {
-    type Target = [[Option<Roll>; 3]; 3];
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl Roll {
+    fn to_usize(&self) -> usize {
+        match self {
+            Roll::One => 1,
+            Roll::Two => 2,
+            Roll::Three => 3,
+            Roll::Four => 4,
+            Roll::Five => 5,
+            Roll::Six => 6,
+        }
     }
 }
 
-impl DerefMut for Board {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub type Column = [Option<Roll>; 3];
+
+#[derive(Debug)]
+pub struct Board {
+    pub board: [Column; 3],
+    pub score: usize,
 }
 
 impl Index<usize> for Board {
-    type Output = [Option<Roll>; 3];
-
+    type Output = Column;
     fn index(&self, index: usize) -> &Self::Output {
-        &(self.0)[index]
+        &(self.board)[index]
     }
 }
 
 impl IndexMut<usize> for Board {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut (self.0)[index]
+        &mut (self.board)[index]
     }
 }
 
 impl Board {
-    fn new() -> Self {
-        Board([[None, None, None], [None, None, None], [None, None, None]])
+    pub fn new() -> Self { Board { board: Default::default(), score: 0 } }
+    
+    pub fn iter(&self) -> Iter<Column> { self.board.iter() }
+
+    pub fn make_move(&mut self, roll: Roll, col: usize) {
+        let column = &mut self[col];
+        let index = column.iter().position(|opt| opt.is_none()).unwrap(); //unsafe bad? TODO?
+
+        // update column
+        column[index] = Some(roll);
+
+        // update score
+        println!("updating score");
+        self.update_score();
     }
 
-    fn score(&self) -> usize {
-        todo!()
+    fn update_score(&mut self) {
+        let mut score = 0;
+        for col in self.board.iter() {
+            let col_int: Vec<usize> = col.iter().map(|roll: &Option<Roll>| if let Some(r) = roll { r.to_usize() } else { 0 }).collect::<Vec<usize>>();
+
+            for (i, n) in col_int.iter().enumerate() {
+                if *n == 0 { break }
+
+                let count = col_int[0..i].iter().filter(|&x| *x == *n).count();
+                score += (1 + count * 2) * n
+            }   
+        }
+        self.score = score
     }
+
 }
