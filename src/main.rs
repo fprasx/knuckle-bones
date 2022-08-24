@@ -27,6 +27,5 @@ mod tests {
         println!("{:?}", board);
 
         assert_eq!(board.score, 14);
-
-    } 
+    }
 }
