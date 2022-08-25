@@ -86,11 +86,13 @@ impl Board {
         self.board.iter()
     }
 
-    // Consider making return type a `Result`
     pub fn make_move(&mut self, roll: Roll, col: usize) {
         let column = &mut self[col];
-        //unsafe bad? TODO?
-        // Yeah we should probably match on it. what do we do if you can't add to the row?
+
+        if column[2].is_some() {
+            panic!("Tried to add roll to filled column!")
+        }
+
         let index = column.iter().position(|opt| opt.is_none()).unwrap();
 
         // update column
